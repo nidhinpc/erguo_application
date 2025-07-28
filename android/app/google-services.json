@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "899177907952",
+    "project_id": "erguo-application",
+    "storage_bucket": "erguo-application.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:899177907952:android:d7e5f029ad53f4be44a435",
+        "android_client_info": {
+          "package_name": "com.example.erguo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJpK4DL2L-q7QVwigi2NqkBxdNIkJgLHc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
