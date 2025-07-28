@@ -1,4 +1,3 @@
-import 'package:erguo/view/admin_panel.dart';
 import 'package:erguo/view/book_service_screen.dart';
 import 'package:erguo/view/home_screen.dart';
 import 'package:erguo/view/worker_register.dart';
