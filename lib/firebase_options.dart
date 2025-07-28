@@ -47,29 +47,30 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyA4GPKtuK2YxIjyamQeyRxuY-LrSRoSr38',
-    appId: '1:899177907952:web:a102964267db805c44a435',
-    messagingSenderId: '899177907952',
-    projectId: 'erguo-application',
-    authDomain: 'erguo-application.firebaseapp.com',
-    storageBucket: 'erguo-application.firebasestorage.app',
-    measurementId: 'G-WN9S7KK7FN',
+    apiKey: 'AIzaSyARaohXnhH5F0SHcVyomCkHzwrxc9ddVms',
+    appId: '1:436303813301:web:24d07a7491cffed3ab7cfc',
+    messagingSenderId: '436303813301',
+    projectId: 'erguo-application-9ccb4',
+    authDomain: 'erguo-application-9ccb4.firebaseapp.com',
+    storageBucket: 'erguo-application-9ccb4.firebasestorage.app',
+    measurementId: 'G-CZLWS8WTJ9',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCJpK4DL2L-q7QVwigi2NqkBxdNIkJgLHc',
-    appId: '1:899177907952:android:d7e5f029ad53f4be44a435',
-    messagingSenderId: '899177907952',
-    projectId: 'erguo-application',
-    storageBucket: 'erguo-application.firebasestorage.app',
+    apiKey: 'AIzaSyCXwEdETmddpQzmHdOMkMPNhdyArfi6kuM',
+    appId: '1:436303813301:android:7eda937715e42704ab7cfc',
+    messagingSenderId: '436303813301',
+    projectId: 'erguo-application-9ccb4',
+    storageBucket: 'erguo-application-9ccb4.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCCYEIVGWI7wZHn8AjvBBiFu_0kz_wsGZg',
-    appId: '1:899177907952:ios:6e6b58c0c16e4e4e44a435',
-    messagingSenderId: '899177907952',
-    projectId: 'erguo-application',
-    storageBucket: 'erguo-application.firebasestorage.app',
+    apiKey: 'AIzaSyBJjLHps7qAUpPUupAwIhVNC842x3is3ZU',
+    appId: '1:436303813301:ios:ee3453e67d389150ab7cfc',
+    messagingSenderId: '436303813301',
+    projectId: 'erguo-application-9ccb4',
+    storageBucket: 'erguo-application-9ccb4.firebasestorage.app',
     iosBundleId: 'com.example.erguo',
   );
+
 }
