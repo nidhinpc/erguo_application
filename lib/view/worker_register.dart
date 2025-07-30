@@ -6,6 +6,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class WorkerRegister extends StatefulWidget {
   const WorkerRegister({super.key});
@@ -19,22 +20,42 @@ class _WorkerRegisterState extends State<WorkerRegister> {
   final phoneController = TextEditingController();
   final experienceController = TextEditingController();
   String? location = "Unknown";
-  // // File? selectedImage;
-  // final picker = ImagePicker();
-  // Future<void> pickImage() async {
-  //   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-  //   if (image != null) {
-  //     setState(() {
-  //       selectedImage = File(image.path);
-  //     });
-  //   }
-  // }
+  File? selectedImage;
+  final picker = ImagePicker();
+  String? uploadedImageUrl;
+  Future<void> pickAndUploadImage() async {
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile == null) return;
+
+    setState(() {
+      selectedImage = File(pickedFile.path);
+    });
+
+    try {
+      final supabase = Supabase.instance.client;
+      final bucket = supabase.storage.from('workers-image'); // your bucket name
+      final fileName = 'worker_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      await bucket.upload(
+        fileName,
+        selectedImage!,
+        fileOptions: const FileOptions(upsert: true),
+      );
+
+      uploadedImageUrl = bucket.getPublicUrl(fileName);
+    } catch (e) {
+      print("Image upload failed: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Image upload failed")));
+    }
+  }
 
   Future<void> registerWorker() async {
     if (nameController.text.isEmpty ||
         phoneController.text.isEmpty ||
         experienceController.text.isEmpty ||
-        // selectedImage == null ||
+        uploadedImageUrl == null ||
         location == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Please fill all fields and pick an image")),
@@ -56,7 +77,7 @@ class _WorkerRegisterState extends State<WorkerRegister> {
         'name': nameController.text.trim(),
         'phonenumber': phoneController.text.trim(),
         'experience': experienceController.text.trim(),
-        'image': "null",
+        'image': uploadedImageUrl ?? "",
         'location': location,
         'createdAt': FieldValue.serverTimestamp(),
       });
@@ -70,7 +91,8 @@ class _WorkerRegisterState extends State<WorkerRegister> {
       phoneController.clear();
       experienceController.clear();
       setState(() {
-        // selectedImage = null;
+        selectedImage = null;
+        uploadedImageUrl = null;
         location = "Unknown";
       });
     } catch (e) {
@@ -117,29 +139,29 @@ class _WorkerRegisterState extends State<WorkerRegister> {
             controller: experienceController,
           ),
           // adding image picker in a cirle
-          // Padding(
-          //   padding: const EdgeInsets.symmetric(
-          //     horizontal: 16.0,
-          //     vertical: 8.0,
-          //   ),
-          //   child: InkWell(
-          //     onTap: pickImage,
-          //     child: CircleAvatar(
-          //       radius: 50,
-          //       backgroundColor: ColorConstants.primaryColor,
-          //       backgroundImage: selectedImage != null
-          //           ? FileImage(selectedImage!)
-          //           : null,
-          //       child: selectedImage == null
-          //           ? Icon(
-          //               Icons.camera_alt,
-          //               size: 50,
-          //               color: ColorConstants.secondaryColor,
-          //             )
-          //           : null,
-          //     ),
-          //   ),
-          // ),
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            child: InkWell(
+              onTap: pickAndUploadImage,
+              child: CircleAvatar(
+                radius: 50,
+                backgroundColor: ColorConstants.primaryColor,
+                backgroundImage: selectedImage != null
+                    ? FileImage(selectedImage!)
+                    : null,
+                child: selectedImage == null
+                    ? Icon(
+                        Icons.camera_alt,
+                        size: 50,
+                        color: ColorConstants.secondaryColor,
+                      )
+                    : null,
+              ),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text("Tap to select a photo"),
