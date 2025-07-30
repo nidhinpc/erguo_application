@@ -1,10 +1,8 @@
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erguo/constants/color_constants.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-
 import 'package:image_picker/image_picker.dart';
 
 class WorkerRegister extends StatefulWidget {
@@ -20,6 +18,7 @@ class _WorkerRegisterState extends State<WorkerRegister> {
   final experienceController = TextEditingController();
   String? location = "Unknown";
   // // File? selectedImage;
+  
   // final picker = ImagePicker();
   // Future<void> pickImage() async {
   //   final XFile? image = await picker.pickImage(source: ImageSource.gallery);
