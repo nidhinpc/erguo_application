@@ -2,7 +2,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erguo/constants/color_constants.dart';
 import 'package:erguo/view/admin_panel.dart';
 import 'package:erguo/view/home_screen.dart';
+import 'package:erguo/view/worker_register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -17,6 +19,21 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  @override
+void initState() {
+  super.initState();
+  FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
+    final deepLink = dynamicLinkData.link;
+
+    if (deepLink.path.contains('worker')) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const WorkerRegister()),
+      );
+    }
+  });
+}
+
 
   Future<void> loginUser() async {
     if (!_formKey.currentState!.validate()) return;

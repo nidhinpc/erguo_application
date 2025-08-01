@@ -40,6 +40,8 @@ dependencies:
   image_picker: ^1.1.2
   firebase_storage: ^12.4.10
   supabase_flutter: ^2.9.1
+  firebase_dynamic_links: ^6.1.10
+  qr_flutter: ^4.1.0
 
 dev_dependencies:
   flutter_test:

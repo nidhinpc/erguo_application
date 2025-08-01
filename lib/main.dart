@@ -7,35 +7,51 @@ import 'package:erguo/view/users/user_registration_screen.dart';
 import 'package:erguo/view/worker_register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Supabase.initialize(
     url: 'https://hzyfzaxdfunskijhlnfu.supabase.co',
-    anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWZ6YXhkZnVuc2tpamhsbmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3NzA1MzIsImV4cCI6MjA2OTM0NjUzMn0.Ma7XCXRVDOzpHNQHg-1cUx4fQTYZ7XLF0FVrkXM6Zjg',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....', // truncated
   );
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  await FirebaseAuth.instance.signInAnonymously();
+  // Remove anonymous auth, not needed
+  // await FirebaseAuth.instance.signInAnonymously();
 
-  runApp(MyWidget());
+  final PendingDynamicLinkData? initialLink =
+      await FirebaseDynamicLinks.instance.getInitialLink();
+
+  runApp(MyApp(initialLink));
 }
 
-class MyWidget extends StatelessWidget {
-  const MyWidget({super.key});
+class MyApp extends StatelessWidget {
+  final PendingDynamicLinkData? initialLink;
+
+  const MyApp(this.initialLink, {super.key});
 
   @override
   Widget build(BuildContext context) {
-     return MaterialApp(
-  title: 'Worker Registration',
+    final deepLink = initialLink?.link;
+    Widget startScreen;
+
+    if (deepLink != null && deepLink.path.contains('worker')) {
+      startScreen = const WorkerRegister();
+    } else {
+      startScreen = const LoginScreen();
+    }
+
+  return MaterialApp(
+  title: 'ERGUO',
   theme: ThemeData(primarySwatch: Colors.blue),
   debugShowCheckedModeBanner: false,
-  initialRoute: '/workerRegister',  
+  home: startScreen, // use dynamic screen here
   routes: {
-    '/': (context) => const HomeScreen(),
     '/bookService': (context) => const BookServiceScreen(),
     '/workerRegister': (context) => const WorkerRegister(),
     '/adminPanel': (context) => const AdminPanel(),
@@ -43,5 +59,5 @@ class MyWidget extends StatelessWidget {
     '/login': (context) => const LoginScreen(),
   },
 );
-}
+  }
 }
