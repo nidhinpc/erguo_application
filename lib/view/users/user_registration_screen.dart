@@ -12,16 +12,22 @@ class UserRegistrationScreen extends StatefulWidget {
 
 class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
+  String? userType; // Default is 'user'
   final _fullnameController = TextEditingController();
   final _emailController = TextEditingController();
   final _genderController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  // Additional fields for worker details
+  final experienceController = TextEditingController();
+  final locationController = TextEditingController();
+  String? selectedPhoto;
+
   bool _isLoading = false;
 
   Future<void> registerUser() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return ;
 
     setState(() => _isLoading = true);
 
@@ -155,7 +161,83 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
                           validator: (value) =>
                               value!.length < 6 ? 'Minimum 6 characters' : null,
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 12),
+
+                           DropdownButtonFormField<String>(
+
+                            dropdownColor: ColorConstants.secondaryColor,
+                value: userType,
+                decoration: InputDecoration(labelText: 'Select Role', border: OutlineInputBorder(),
+                                    disabledBorder: OutlineInputBorder(),
+                                    focusedBorder: OutlineInputBorder(),
+                                    enabledBorder: OutlineInputBorder(),
+                                    ),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    userType = newValue;
+                  });
+                },
+                items: ['user', 'worker']
+                    .map<DropdownMenuItem<String>>(
+                      (String value) => DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value == 'user' ? 'User' : 'Worker'),
+                      ),
+                    )
+                    .toList(),
+              ),
+
+                    // Additional fields for Worker
+              if (userType == 'worker') ...[
+                SizedBox(height: 12),
+                TextFormField(
+                  controller: experienceController,
+                  decoration: InputDecoration(labelText: 'Experience', border: OutlineInputBorder(),
+                                    disabledBorder: OutlineInputBorder(),
+                                    focusedBorder: OutlineInputBorder(),
+                                    enabledBorder: OutlineInputBorder(),),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your experience';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 12),
+                TextFormField(
+                  controller: locationController,
+                  decoration: InputDecoration(labelText: 'Location', border: OutlineInputBorder(),
+                                    disabledBorder: OutlineInputBorder(),
+                                    focusedBorder: OutlineInputBorder(),
+                                    enabledBorder: OutlineInputBorder(),),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please enter your location';
+                    }
+                    return null;
+                  },
+                ),
+
+                // Photo upload field (this can be more complex with file pickers)
+                SizedBox(height: 12),
+                TextFormField(
+                  decoration: InputDecoration(labelText: 'Upload Photo URL',border: OutlineInputBorder(),
+                                    disabledBorder: OutlineInputBorder(),
+                                    focusedBorder: OutlineInputBorder(),
+                                    enabledBorder: OutlineInputBorder(),),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Please provide a photo URL';
+                    }
+                    return null;
+                  },
+                  onChanged: (value) {
+                    selectedPhoto = value;
+                  },
+                ),
+              ],
+
+              SizedBox(height: 24),
                         ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ColorConstants.primaryColor,
@@ -194,3 +276,172 @@ class _UserRegistrationScreenState extends State<UserRegistrationScreen> {
     );
   }
 }
+
+
+
+
+
+
+
+
+// class RegistrationScreen extends StatefulWidget {
+//   @override
+//   _RegistrationScreenState createState() => _RegistrationScreenState();
+// }
+
+// class _RegistrationScreenState extends State<RegistrationScreen> {
+//   // Define the dropdown value
+//   String? userType; // Default is 'user'
+//   final _formKey = GlobalKey<FormState>();
+
+//   // Text controllers for basic user details
+//   final nameController = TextEditingController();
+//   final phoneController = TextEditingController();
+//   final emailController = TextEditingController();
+//   final passwordController = TextEditingController();
+
+//   // Additional fields for worker details
+//   final experienceController = TextEditingController();
+//   final locationController = TextEditingController();
+//   String? selectedPhoto;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(title: Text('Registration Form')),
+//       body: Padding(
+//         padding: const EdgeInsets.all(16.0),
+//         child: Form(
+//           key: _formKey,
+//           child: ListView(
+//             children: [
+//               // Basic info fields
+//               TextFormField(
+//                 controller: nameController,
+//                 decoration: InputDecoration(labelText: 'Name'),
+//                 validator: (value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Please enter your name';
+//                   }
+//                   return null;
+//                 },
+//               ),
+//               TextFormField(
+//                 controller: phoneController,
+//                 decoration: InputDecoration(labelText: 'Phone Number'),
+//                 validator: (value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Please enter your phone number';
+//                   }
+//                   return null;
+//                 },
+//               ),
+//               TextFormField(
+//                 controller: emailController,
+//                 decoration: InputDecoration(labelText: 'Email'),
+//                 validator: (value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Please enter your email';
+//                   }
+//                   return null;
+//                 },
+//               ),
+//               TextFormField(
+//                 controller: passwordController,
+//                 obscureText: true,
+//                 decoration: InputDecoration(labelText: 'Password'),
+//                 validator: (value) {
+//                   if (value == null || value.isEmpty) {
+//                     return 'Please enter your password';
+//                   }
+//                   return null;
+//                 },
+//               ),
+
+//               // Dropdown for User or Worker
+//               DropdownButtonFormField<String>(
+//                 value: userType,
+//                 decoration: InputDecoration(labelText: 'Select Role'),
+//                 onChanged: (String? newValue) {
+//                   setState(() {
+//                     userType = newValue;
+//                   });
+//                 },
+//                 items: ['user', 'worker']
+//                     .map<DropdownMenuItem<String>>(
+//                       (String value) => DropdownMenuItem<String>(
+//                         value: value,
+//                         child: Text(value == 'user' ? 'User' : 'Worker'),
+//                       ),
+//                     )
+//                     .toList(),
+//               ),
+
+//               // Additional fields for Worker
+//               if (userType == 'worker') ...[
+//                 TextFormField(
+//                   controller: experienceController,
+//                   decoration: InputDecoration(labelText: 'Experience'),
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Please enter your experience';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+//                 TextFormField(
+//                   controller: locationController,
+//                   decoration: InputDecoration(labelText: 'Location'),
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Please enter your location';
+//                     }
+//                     return null;
+//                   },
+//                 ),
+
+//                 // Photo upload field (this can be more complex with file pickers)
+//                 TextFormField(
+//                   decoration: InputDecoration(labelText: 'Upload Photo URL'),
+//                   validator: (value) {
+//                     if (value == null || value.isEmpty) {
+//                       return 'Please provide a photo URL';
+//                     }
+//                     return null;
+//                   },
+//                   onChanged: (value) {
+//                     selectedPhoto = value;
+//                   },
+//                 ),
+//               ],
+
+//               // Submit Button
+//               Padding(
+//                 padding: const EdgeInsets.symmetric(vertical: 16.0),
+//                 child: ElevatedButton(
+//                   onPressed: () {
+//                     if (_formKey.currentState?.validate() ?? false) {
+//                       // Process data
+//                       // For example, you can send it to an API or save it locally
+//                       print("Name: ${nameController.text}");
+//                       print("Phone: ${phoneController.text}");
+//                       print("Email: ${emailController.text}");
+//                       print("Role: $userType");
+
+//                       if (userType == 'worker') {
+//                         print("Experience: ${experienceController.text}");
+//                         print("Location: ${locationController.text}");
+//                         print("Photo: $selectedPhoto");
+//                       }
+//                     }
+//                   },
+//                   child: Text('Register'),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }
