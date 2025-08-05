@@ -45,6 +45,10 @@ dependencies:
   geolocator: ^14.0.2
   geocoding: ^4.0.0
   razorpay_flutter: ^1.4.0
+  flutter_riverpod: ^2.6.1
+  flutter_hooks: ^0.21.2
+  google_maps_flutter: ^2.12.3
+  location: ^8.0.1
 
 dev_dependencies:
   flutter_test:

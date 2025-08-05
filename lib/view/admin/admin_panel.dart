@@ -1,3 +1,4 @@
+import 'package:erguo/view/admin/service_issue_list_screen.dart';
 import 'package:flutter/material.dart';
 
 class AdminPanel extends StatefulWidget {
@@ -38,6 +39,12 @@ class _AdminPanelState extends State<AdminPanel> {
             return GestureDetector(
               onTap: () {
                 // Handle each service box tap here
+                Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => ServiceIssueListScreen(serviceName: service['title']),
+    ),
+  );
               },
               child: Container(
                 decoration: BoxDecoration(

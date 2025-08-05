@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erguo/constants/color_constants.dart';
-import 'package:erguo/view/admin_panel.dart';
-import 'package:erguo/view/home_screen.dart';
+import 'package:erguo/view/admin/admin_panel.dart';
+import 'package:erguo/view/users/home_screen.dart';
 import 'package:erguo/view/worker_register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';

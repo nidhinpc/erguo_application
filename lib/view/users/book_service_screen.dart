@@ -1,52 +1,50 @@
 import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erguo/constants/color_constants.dart';
+import 'package:erguo/controller/booking_service_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class BookServiceScreen extends StatefulWidget {
+class BookServiceScreen extends ConsumerWidget {
   const BookServiceScreen({super.key});
 
-  @override
-  State<BookServiceScreen> createState() => _BookServiceScreenState();
-}
+  Future<void> pickAndUploadImage(WidgetRef ref, BuildContext context) async {
+    final picker = ImagePicker();
+    try {
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) return;
 
-class _BookServiceScreenState extends State<BookServiceScreen> {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController addressController = TextEditingController();
+      final File file = File(pickedFile.path);
+      final supabase = Supabase.instance.client;
+      final bucket = supabase.storage.from('booking-img');
+      final fileName = 'booking_${DateTime.now().millisecondsSinceEpoch}.jpg';
 
-  File? selectedImage;
-  String? userLocation;
-  DateTime? selectedDateTime;
+      await bucket.upload(
+        fileName,
+        file,
+        fileOptions: const FileOptions(upsert: true),
+      );
 
-  Future<void> pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-    if (image != null) {
-      setState(() {
-        selectedImage = File(image.path);
-      });
+      final imageUrl = bucket.getPublicUrl(fileName);
+      ref.read(bookingProvider.notifier).setImage(file, imageUrl);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Image uploaded successfully")),
+      );
+    } catch (e) {
+      print("Image upload error: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to upload image: $e")),
+      );
     }
   }
 
-  Future<String?> uploadToSupabase(File file) async {
-    final supabase = Supabase.instance.client;
-    final fileName = 'booking_${DateTime.now().millisecondsSinceEpoch}.jpg';
-    final filePath = 'booking/$fileName';
-
-    final response =
-        await supabase.storage.from('booking-image').upload(filePath, file);
-
-    if (response.isNotEmpty) {
-      return supabase.storage.from('booking-image').getPublicUrl(filePath);
-    }
-    return null;
-  }
-
-  Future<void> getCurrentLocation() async {
+  Future<void> getCurrentLocation(WidgetRef ref, BuildContext context) async {
     try {
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -72,19 +70,19 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
 
       Placemark place = placemarks[0];
 
-      setState(() {
-        userLocation = "${place.locality}, ${place.administrativeArea}";
-      });
+      ref.read(bookingProvider.notifier).setLocation(
+            "${place.locality}, ${place.administrativeArea}",
+          );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Location selected: $userLocation")),
+        SnackBar(content: Text("Location selected: ${place.locality}")),
       );
     } catch (e) {
       print("Error getting location: $e");
     }
   }
 
-  Future<void> pickDateTime(BuildContext context) async {
+  Future<void> pickDateTime(BuildContext context, WidgetRef ref) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -99,25 +97,27 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
       );
 
       if (pickedTime != null) {
-        setState(() {
-          selectedDateTime = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
+        final DateTime fullDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+
+        ref.read(bookingProvider.notifier).setScheduledTime(fullDateTime);
       }
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(bookingProvider);
     final String serviceName =
         ModalRoute.of(context)?.settings.arguments as String? ?? 'Service';
 
     return Scaffold(
+      backgroundColor: ColorConstants.secondaryColor,
       appBar: AppBar(
         title: Text('Request For $serviceName',
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
@@ -125,33 +125,30 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Fill in the details to book $serviceName service',
-                style: const TextStyle(fontSize: 16)),
-            const SizedBox(height: 20),
-
             TextField(
               maxLines: 5,
-              controller: nameController,
               decoration: const InputDecoration(
                 labelText: 'Describe your issue',
                 border: OutlineInputBorder(),
               ),
+              onChanged: ref.read(bookingProvider.notifier).setDescription,
             ),
             const SizedBox(height: 12),
-
             TextField(
-              controller: addressController,
+
               decoration: const InputDecoration(
                 labelText: 'Address',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+
+                ),
+
               ),
+              onChanged: ref.read(bookingProvider.notifier).setAddress,
             ),
             const SizedBox(height: 12),
-
-            GestureDetector(
-              onTap: () async => await pickImage(),
+             GestureDetector(
+              onTap: () async => await pickAndUploadImage(ref, context),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -166,7 +163,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                         size: 30, color: ColorConstants.primaryColor),
                     const SizedBox(width: 10),
                     Text(
-                      selectedImage != null ? 'Image selected' : 'Select a photo',
+                     state.imageFile != null ? 'Image selected' : 'Select a photo',
                       style: const TextStyle(
                           color: ColorConstants.primaryColor, fontSize: 16),
                     ),
@@ -175,17 +172,21 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
               ),
             ),
 
-            if (selectedImage != null) ...[
+            if (state.imageFile != null) ...[
               const SizedBox(height: 10),
               Center(
-                child: Image.file(selectedImage!, height: 150),
+                child: Image.file(state.imageFile!, height: 150),
               )
             ],
-
+            // ElevatedButton(
+            //   onPressed: () => pickAndUploadImage(ref, context),
+            //   child: const Text('Pick Image'),
+            // ),
+            // if (state.imageFile != null)
+            //   Image.file(state.imageFile!, height: 100),
             const SizedBox(height: 12),
-
-            GestureDetector(
-              onTap: () => getCurrentLocation(),
+              GestureDetector(
+              onTap: () => getCurrentLocation(ref, context),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -200,7 +201,7 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                         size: 30, color: ColorConstants.primaryColor),
                     const SizedBox(width: 10),
                     Text(
-                      userLocation ?? 'Select your location',
+                      state.location ?? "Select a location",
                       style: const TextStyle(
                           color: ColorConstants.primaryColor, fontSize: 16),
                     ),
@@ -208,11 +209,14 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                 ),
               ),
             ),
-
+            // ElevatedButton(
+            //   onPressed: () => getCurrentLocation(ref, context),
+            //   child: const Text('Get Location'),
+            // ),
+            // if (state.location != null) Text("Location: ${state.location}"),
             const SizedBox(height: 12),
-
-            GestureDetector(
-              onTap: () => pickDateTime(context),
+              GestureDetector(
+              onTap: () =>  pickDateTime(context, ref),
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -227,75 +231,67 @@ class _BookServiceScreenState extends State<BookServiceScreen> {
                         size: 30, color: ColorConstants.primaryColor),
                     const SizedBox(width: 10),
                     Text(
-                      selectedDateTime != null
-                          ? '${selectedDateTime!.toLocal()}'.split('.')[0]
-                          : 'Select a time',
+                      state.scheduledTime != null
+                          ? "${state.scheduledTime!.toLocal()}"
+                          : "Select a time",
                       style: const TextStyle(
                           color: ColorConstants.primaryColor, fontSize: 16),
-                    ),
+                   ),
+                   
                   ],
                 ),
               ),
             ),
-
+            // ElevatedButton(
+            //   onPressed: () => pickDateTime(context, ref),
+            //   child: const Text('Pick Schedule'),
+            // ),
+            // if (state.scheduledTime != null)
+            //   Text("Time: ${state.scheduledTime!.toLocal()}"),
             const SizedBox(height: 24),
-
             SizedBox(
               height: 50,
               width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ButtonStyle(
+              child: ElevatedButton(
+                 style: ButtonStyle(
                   backgroundColor:
                       WidgetStateProperty.all<Color>(ColorConstants.primaryColor),
                 ),
-                icon: const Icon(Icons.arrow_forward,
-                    size: 20, color: ColorConstants.secondaryColor),
-                label: const Text('Submit Booking',
-                    style: TextStyle(
-                        color: ColorConstants.secondaryColor, fontSize: 18)),
                 onPressed: () async {
-                  String description = nameController.text.trim();
-                  String address = addressController.text.trim();
-                  String location = userLocation ?? "Not selected";
-                  String scheduleTime =
-                      selectedDateTime?.toIso8601String() ?? "";
-
-                  if (description.isEmpty ||
-                      address.isEmpty ||
-                      selectedImage == null) {
+                  if (state.description.isEmpty ||
+                      state.address.isEmpty ||
+                      state.imageUrl == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                          content:
-                              Text('Please fill all fields and pick an image')),
+                          content: Text('Please fill all fields and upload image')),
                     );
                     return;
                   }
-
-                  try {
-                    final imageUrl = await uploadToSupabase(selectedImage!);
-                    if (imageUrl == null) throw Exception("Image upload failed");
-
-                    await FirebaseFirestore.instance.collection('booking').add({
-                      "description": description,
-                      "address": address,
-                      "photo": imageUrl,
-                      "location": location,
-                      "servicename": serviceName,
-                      "sheduledtime": scheduleTime,
-                    });
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Booking submitted successfully!')),
-                    );
-                    Navigator.pop(context);
-                  } catch (e) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
-                    );
-                  }
+              
+                  final user = FirebaseAuth.instance.currentUser;
+                  await FirebaseFirestore.instance.collection('booking').add({
+                    "description": state.description,
+                    "address": state.address,
+                    "photo": state.imageUrl,
+                    "location": state.location ?? "Not selected",
+                    "servicename": serviceName,
+                    "sheduledtime": state.scheduledTime?.toIso8601String() ?? '',
+                    "userId": user?.uid,
+                  });
+              
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Booking submitted successfully!')),
+                  );
+                  ref.read(bookingProvider.notifier).clear();
+                  Navigator.pop(context);
                 },
+                child: const Text('Submit Booking',
+                    style: TextStyle(
+                      color: ColorConstants.secondaryColor,
+                      fontSize: 18,
+                    )),
               ),
-            ),
+            )
           ],
         ),
       ),
