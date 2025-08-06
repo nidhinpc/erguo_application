@@ -49,6 +49,7 @@ dependencies:
   flutter_hooks: ^0.21.2
   google_maps_flutter: ^2.12.3
   location: ^8.0.1
+  firebase_database: ^11.3.10
 
 dev_dependencies:
   flutter_test:

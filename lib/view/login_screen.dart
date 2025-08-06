@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erguo/constants/color_constants.dart';
 import 'package:erguo/view/admin/admin_panel.dart';
 import 'package:erguo/view/users/home_screen.dart';
+import 'package:erguo/view/worker/worker_code_entry_screen.dart';
 import 'package:erguo/view/worker_register.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
@@ -19,21 +20,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+
   @override
-void initState() {
-  super.initState();
-  FirebaseDynamicLinks.instance.onLink.listen((dynamicLinkData) {
-    final deepLink = dynamicLinkData.link;
-
-    if (deepLink.path.contains('worker')) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const WorkerRegister()),
-      );
+  void initState() {
+    super.initState();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      // Navigate to role-based screen directly
     }
-  });
-}
-
+  }
 
   Future<void> loginUser() async {
     if (!_formKey.currentState!.validate()) return;
@@ -41,37 +36,54 @@ void initState() {
     setState(() => _isLoading = true);
 
     try {
-      // Step 1: Sign in user
       final userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-      );
+            email: _emailController.text.trim(),
+            password: _passwordController.text.trim(),
+          );
 
       final uid = userCredential.user!.uid;
 
-      // Step 2: Fetch role from Firestore
+      // Step 1: Try to fetch from 'users' collection
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(uid)
           .get();
 
-      if (!userDoc.exists) {
-        throw Exception("User record not found in Firestore.");
-      }
+      String? role;
 
-      final role = userDoc.data()?['role'];
+      if (userDoc.exists) {
+        role = userDoc.data()?['role'];
+      } else {
+        // Step 2: Try to fetch from 'admin' collection
+        final adminSnapshot = await FirebaseFirestore.instance
+            .collection('admin')
+            .where('email', isEqualTo: _emailController.text.trim())
+            .get();
+
+        if (adminSnapshot.docs.isNotEmpty) {
+          role = 'admin';
+        } else {
+          throw Exception("User role not found.");
+        }
+      }
 
       // Step 3: Navigate based on role
       if (role == 'admin') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const AdminPanel()));
+          context,
+          MaterialPageRoute(builder: (_) => const AdminPanel()),
+        );
       } else if (role == 'worker') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+          context,
+          MaterialPageRoute(builder: (_) => const WorkerCodeEntryScreen()),
+        );
       } else if (role == 'user') {
         Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: (_) => const HomeScreen()));
+          context,
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+        );
       } else {
         throw Exception("Unknown role: $role");
       }
@@ -79,11 +91,13 @@ void initState() {
       String message = "Login failed";
       if (e.code == 'user-not-found') message = "User not found";
       if (e.code == 'wrong-password') message = "Incorrect password";
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
     } catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
     }
 
     setState(() => _isLoading = false);
@@ -98,31 +112,31 @@ void initState() {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
-              children: [ 
-                 const Text(
-                "ERGUO",
-                style: TextStyle(
-                  fontStyle: FontStyle.italic,
-                  fontSize: 50,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 2,
-                  color: ColorConstants.secondaryColor,
+              children: [
+                const Text(
+                  "ERGUO",
+                  style: TextStyle(
+                    fontStyle: FontStyle.italic,
+                    fontSize: 50,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                    color: ColorConstants.secondaryColor,
+                  ),
                 ),
-              ),             
-              const SizedBox(height: 32),       
+                const SizedBox(height: 32),
                 Container(
-                    padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  color: ColorConstants.secondaryColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10,
-                      offset: Offset(0, 4),
-                    )
-                  ],
-                ),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: ColorConstants.secondaryColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
                   child: Form(
                     key: _formKey,
                     child: ListView(
@@ -132,21 +146,25 @@ void initState() {
                         TextFormField(
                           controller: _emailController,
                           decoration: const InputDecoration(
-                          labelText: 'Email',border: OutlineInputBorder(),
-                          disabledBorder: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(),
-                          enabledBorder: OutlineInputBorder(),    ),
+                            labelText: 'Email',
+                            border: OutlineInputBorder(),
+                            disabledBorder: OutlineInputBorder(),
+                            focusedBorder: OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(),
+                          ),
                           validator: (value) =>
                               value!.isEmpty ? 'Enter your email' : null,
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
                           controller: _passwordController,
-                          decoration: const InputDecoration(labelText: 'Password',
-                          border: OutlineInputBorder(),
-                          disabledBorder: OutlineInputBorder(),
-                          focusedBorder: OutlineInputBorder(),
-                          enabledBorder: OutlineInputBorder(),    ),
+                          decoration: const InputDecoration(
+                            labelText: 'Password',
+                            border: OutlineInputBorder(),
+                            disabledBorder: OutlineInputBorder(),
+                            focusedBorder: OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(),
+                          ),
                           obscureText: true,
                           validator: (value) =>
                               value!.isEmpty ? 'Enter your password' : null,
@@ -160,8 +178,14 @@ void initState() {
                           onPressed: _isLoading ? null : loginUser,
                           child: _isLoading
                               ? const CircularProgressIndicator()
-                              : const Text("Login", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold,
-                              color: ColorConstants.secondaryColor)),
+                              : const Text(
+                                  "Login",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: ColorConstants.secondaryColor,
+                                  ),
+                                ),
                         ),
                         const SizedBox(height: 16),
                         TextButton(

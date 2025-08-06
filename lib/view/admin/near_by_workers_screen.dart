@@ -1,8 +1,11 @@
+// lib/view/admin/nearby_workers_screen.dart
+
 import 'dart:developer';
-
+import 'package:erguo/controller/worker_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class NearbyWorkersScreen extends StatefulWidget {
+class NearbyWorkersScreen extends ConsumerWidget {
   final Map<String, dynamic> issue;
   final String uniqueCode;
 
@@ -12,53 +15,51 @@ class NearbyWorkersScreen extends StatefulWidget {
     required this.uniqueCode,
   });
 
-  @override
-  State<NearbyWorkersScreen> createState() => _NearbyWorkersScreenState();
-}
-
-class _NearbyWorkersScreenState extends State<NearbyWorkersScreen> {
-  final List<Map<String, dynamic>> workers = [
-    {'name': 'Raj', 'distance': 1.5, 'phone': '9876543210'},
-    {'name': 'Amit', 'distance': 2.0, 'phone': '9876543211'},
-    {'name': 'Nikhil', 'distance': 3.4, 'phone': '9876543212'},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    workers.sort((a, b) => a['distance'].compareTo(b['distance']));
-  }
-
-  void sendCodeToWorker(String name, String phone) {
-    // Here you'd send the code (via SMS, Firestore, or WhatsApp logic)
-    // For now, just showing a snackbar
+  void sendCodeToWorker(BuildContext context, String name, String phone) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Code sent to $name ($phone): ${widget.uniqueCode}"),
-      ),
+      SnackBar(content: Text("Code sent to $name ($phone): $uniqueCode")),
     );
-    log("Code sent to $name ($phone): ${widget.uniqueCode}");
+    log("Code sent to $name ($phone): $uniqueCode");
 
-    // OPTIONAL: Save the code in Firestore under that worker's node
+    // OPTIONAL: Save code under Firestore for tracking
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final workerAsync = ref.watch(workerProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Nearby Workers")),
-      body: ListView.builder(
-        itemCount: workers.length,
-        itemBuilder: (context, index) {
-          final worker = workers[index];
-          return Card(
-            child: ListTile(
-              title: Text(worker['name']),
-              subtitle: Text("${worker['distance']} km | ${worker['phone']}"),
-              trailing: ElevatedButton(
-                onPressed: () => sendCodeToWorker(worker['name'], worker['phone']),
-                child: const Text("Send Code"),
-              ),
-            ),
+      body: workerAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text("Error: $e")),
+        data: (workers) {
+          if (workers.isEmpty) {
+            return const Center(child: Text("No workers available"));
+          }
+
+          return ListView.builder(
+            itemCount: workers.length,
+            itemBuilder: (context, index) {
+              final worker = workers[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: ListTile(
+                  title: Text(worker['fullname'] ?? 'No Name'),
+                  subtitle: Text(
+                    "${worker['location'] ?? 'N/A'} | ${worker['phone'] ?? 'N/A'}",
+                  ),
+                  trailing: ElevatedButton(
+                    onPressed: () => sendCodeToWorker(
+                      context,
+                      worker['fullname'] ?? '',
+                      worker['phone'] ?? '',
+                    ),
+                    child: const Text("Send Code"),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),

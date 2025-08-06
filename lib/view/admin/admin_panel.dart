@@ -22,7 +22,10 @@ class _AdminPanelState extends State<AdminPanel> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Admin Panel', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Admin Panel',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -40,11 +43,12 @@ class _AdminPanelState extends State<AdminPanel> {
               onTap: () {
                 // Handle each service box tap here
                 Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) => ServiceIssueListScreen(serviceName: service['title']),
-    ),
-  );
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ServiceIssueListScreen(serviceName: service['title']),
+                  ),
+                );
               },
               child: Container(
                 decoration: BoxDecoration(
@@ -65,7 +69,10 @@ class _AdminPanelState extends State<AdminPanel> {
                     const SizedBox(height: 10),
                     Text(
                       service['title'],
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),

@@ -39,7 +39,9 @@ class _UserPaymentScreenState extends ConsumerState<UserPaymentScreen> {
                     subtitle: Text("Worker ID: \${p.workerId}"),
                     trailing: ElevatedButton(
                       onPressed: () async {
-                        await ref.read(paymentProvider.notifier).markAsPaid(p.id);
+                        await ref
+                            .read(paymentProvider.notifier)
+                            .markAsPaid(p.id);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text("Payment completed")),
