@@ -72,5 +72,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'erguo-application-9ccb4.firebasestorage.app',
     iosBundleId: 'com.example.erguo',
   );
-
 }

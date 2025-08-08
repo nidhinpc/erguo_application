@@ -3,9 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erguo/model/payment_model.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final paymentProvider = StateNotifierProvider<PaymentController, List<PaymentModel>>((ref) {
-  return PaymentController();
-});
+final paymentProvider =
+    StateNotifierProvider<PaymentController, List<PaymentModel>>((ref) {
+      return PaymentController();
+    });
 
 class PaymentController extends StateNotifier<List<PaymentModel>> {
   PaymentController() : super([]);
@@ -23,7 +24,7 @@ class PaymentController extends StateNotifier<List<PaymentModel>> {
         .toList();
   }
 
-  Future<void> sendPaymentByWorker({
+  Future<String> sendPaymentByWorker({
     required String workerId,
     required String userId,
     required int amount,
@@ -38,13 +39,18 @@ class PaymentController extends StateNotifier<List<PaymentModel>> {
       "timestamp": FieldValue.serverTimestamp(),
     });
 
-    state = [...state, PaymentModel.fromDoc(doc.id, {
-      "workerId": workerId,
-      "userId": userId,
-      "amount": amount,
-      "description": description,
-      "paid": false,
-    })];
+    state = [
+      ...state,
+      PaymentModel.fromDoc(doc.id, {
+        "workerId": workerId,
+        "userId": userId,
+        "amount": amount,
+        "description": description,
+        "paid": false,
+      }),
+    ];
+
+    return doc.id; // Return payment ID
   }
 
   Future<void> markAsPaid(String paymentId) async {

@@ -51,7 +51,8 @@ class _ServiceIssueListScreenState extends State<ServiceIssueListScreen> {
     });
 
     if (action == 'accepted') {
-      final uniqueCode = 'ISSUE-${DateTime.now().millisecondsSinceEpoch}';
+      final uniqueCode =
+          'ISSUE-${issues[index]['userId']}&${DateTime.now().millisecondsSinceEpoch}';
       Navigator.push(
         context,
         MaterialPageRoute(

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:erguo/constants/color_constants.dart';
 import 'package:erguo/view/admin/admin_panel.dart';
+import 'package:erguo/view/bottom_nav_screen.dart';
 import 'package:erguo/view/users/home_screen.dart';
 import 'package:erguo/view/worker/worker_code_entry_screen.dart';
 import 'package:erguo/view/worker_register.dart';
@@ -72,17 +73,23 @@ class _LoginScreenState extends State<LoginScreen> {
       if (role == 'admin') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const AdminPanel()),
+          MaterialPageRoute(
+            builder: (_) => const BottomNavScreen(initialIndex: 0),
+          ),
         );
       } else if (role == 'worker') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const WorkerCodeEntryScreen()),
+          MaterialPageRoute(
+            builder: (_) => const BottomNavScreen(initialIndex: 2),
+          ),
         );
       } else if (role == 'user') {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          MaterialPageRoute(
+            builder: (_) => const BottomNavScreen(initialIndex: 1),
+          ),
         );
       } else {
         throw Exception("Unknown role: $role");
