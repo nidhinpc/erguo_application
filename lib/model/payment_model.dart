@@ -19,19 +19,19 @@ class PaymentModel {
   factory PaymentModel.fromDoc(String id, Map<String, dynamic> data) {
     return PaymentModel(
       id: id,
-      workerId: data['workerId'],
-      userId: data['userId'],
-      amount: data['amount'],
-      description: data['description'],
-      paid: data['paid'],
+      workerId: data['workerId'] ?? '',
+      userId: data['userId'] ?? '',
+      amount: data['amount'] ?? 0,
+      description: data['description'] ?? '',
+      paid: data['paid'] ?? false,
     );
   }
 
   Map<String, dynamic> toMap() => {
-        "workerId": workerId,
-        "userId": userId,
-        "amount": amount,
-        "description": description,
-        "paid": paid,
-      };
+    "workerId": workerId,
+    "userId": userId,
+    "amount": amount,
+    "description": description,
+    "paid": paid,
+  };
 }
