@@ -25,67 +25,119 @@ class HomeScreen extends ConsumerWidget {
   void _showPendingBookingsSheet(
     BuildContext context,
     List<Map<String, dynamic>> bookings,
-    List payments,
   ) {
     showModalBottomSheet(
       context: context,
       builder: (context) {
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: bookings.length,
-          itemBuilder: (context, index) {
-            final booking = bookings[index];
-
-            final pendingPayment = payments.firstWhereOrNull((p) {
-              final match =
-                  p.userId.trim() == (booking['userId'] ?? '').trim() &&
-                  p.description.trim().toLowerCase() ==
-                      (booking['description'] ?? '').trim().toLowerCase() &&
-                  !p.paid;
-
-              log(
-                "🔍 Checking booking: ${booking['description']} | "
-                "Match: $match | Payment paid: ${p.paid}",
-              );
-              return match;
-            });
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              child: ListTile(
-                leading: booking['photo'] != null
-                    ? Image.network(
-                        booking['photo'],
-                        width: 50,
-                        height: 50,
-                        fit: BoxFit.cover,
-                      )
-                    : null,
-                title: Text(booking['servicename'] ?? 'Unknown'),
-                subtitle: Text(booking['description'] ?? ''),
-                trailing: ElevatedButton(
-                  onPressed: () {
-                    if (pendingPayment != null) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const UserPaymentScreen(),
-                        ),
-                      );
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('No pending payment')),
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: pendingPayment != null
-                        ? Colors.orange
-                        : Colors.grey,
-                  ),
-                  child: Text(pendingPayment != null ? 'Go to Pay' : 'Pending'),
-                ),
+        return Consumer(
+          builder: (context, ref, _) {
+            final paymentsAsync = ref.watch(
+              userPaymentProvider(
+                bookings.first['bookId']
+                    as int, // Use bookId from first booking
               ),
+            ); // watch in real time
+
+            return paymentsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) =>
+                  Center(child: Text('Error loading payments: $e')),
+              data: (payments) {
+                return ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: bookings.length,
+                  itemBuilder: (context, index) {
+                    final booking = bookings[index];
+
+                    // Find matching payment
+                    final pendingPayment = payments.firstWhereOrNull(
+                      (p) =>
+                          p.bookId == booking['bookId'] &&
+                          p.userId?.toString() ==
+                              booking['userId']?.toString() &&
+                          p.paid == false,
+                    );
+                    log("pendingPayment: $pendingPayment");
+                    log(
+                      "Booking bookId: ${booking['bookId']} (${booking['bookId']?.runtimeType})",
+                    );
+                    log(
+                      "Booking userId: ${booking['userId']} (${booking['userId']?.runtimeType})",
+                    );
+                    log(
+                      "Payment bookIds: ${payments.map((p) => '${p.bookId} (${p.bookId.runtimeType})').toList()}",
+                    );
+                    log(
+                      "Payment userIds: ${payments.map((p) => p.userId).toList()}",
+                    );
+
+                    // Decide button label & color
+                    String buttonText;
+                    Color buttonColor;
+
+                    if (pendingPayment != null) {
+                      if (pendingPayment.paid) {
+                        buttonText = 'Completed';
+                        buttonColor = Colors.green;
+                      } else {
+                        buttonText = 'Go to Pay';
+                        buttonColor = Colors.orange;
+                      }
+                    } else {
+                      buttonText = 'Pending';
+                      buttonColor = Colors.grey;
+                    }
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: ListTile(
+                        leading: booking['photo'] != null
+                            ? Image.network(
+                                booking['photo'],
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.cover,
+                              )
+                            : const Icon(Icons.image_not_supported, size: 50),
+                        title: Text(booking['servicename'] ?? 'Unknown'),
+                        subtitle: Text(booking['description'] ?? ''),
+                        trailing: ElevatedButton(
+                          onPressed: () {
+                            if (pendingPayment != null &&
+                                !pendingPayment.paid) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => UserPaymentScreen(
+                                    bookId: booking['bookId'],
+                                  ),
+                                ),
+                              );
+                            } else if (pendingPayment != null &&
+                                pendingPayment.paid) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Payment already completed'),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No pending payment'),
+                                ),
+                              );
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: buttonColor,
+                          ),
+                          child: Text(buttonText),
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
             );
           },
         );
@@ -96,7 +148,8 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bookingAsyncValue = ref.watch(userBookingsProvider);
-    final paymentAsyncValue = ref.watch(userPaymentProvider);
+    // Replace 'userId' with the actual user id or parameter you need to pass
+    final paymentAsyncValue = ref.watch(userPaymentProvider(0));
 
     return Scaffold(
       appBar: AppBar(
@@ -184,7 +237,7 @@ class HomeScreen extends ConsumerWidget {
                       onPressed: () => _showPendingBookingsSheet(
                         context,
                         bookings,
-                        payments,
+                        //payments,
                       ),
                       child: const Text("My Bookings"),
                     ),

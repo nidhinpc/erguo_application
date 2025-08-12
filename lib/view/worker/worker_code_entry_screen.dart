@@ -59,15 +59,19 @@ class _WorkerCodeEntryScreenState extends State<WorkerCodeEntryScreen> {
         final bookingData = bookingSnapshot.docs.first.data();
         final userLat = bookingData['latitude'] ?? 0.0;
         final userLng = bookingData['longitude'] ?? 0.0;
+        final bookid = bookingData['bookId'] ?? '';
 
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => WorkerLiveTrackingScreen(
-              userLat: userLat,
-              userLng: userLng,
-              userid: userId,
-            ),
+            builder: (context) =>
+                //MapSample(),
+                WorkerLiveTrackingScreen(
+                  bookid: bookid,
+                  userLat: userLat,
+                  userLng: userLng,
+                  userid: userId,
+                ),
           ),
         );
       } else {

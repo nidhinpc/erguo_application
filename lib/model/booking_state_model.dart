@@ -9,8 +9,10 @@ class BookingState {
   final String? imageUrl;
   final double? latitude;
   final double? longitude;
+  final int? bookId;
 
   BookingState({
+    this.bookId,
     this.description = '',
     this.address = '',
     this.location,
@@ -30,6 +32,7 @@ class BookingState {
     String? imageUrl,
     double? latitude,
     double? longitude,
+    int? bookId,
   }) {
     return BookingState(
       description: description ?? this.description,
@@ -40,6 +43,7 @@ class BookingState {
       imageUrl: imageUrl ?? this.imageUrl,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      bookId: bookId ?? this.bookId,
     );
   }
 }

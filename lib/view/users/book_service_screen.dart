@@ -302,7 +302,29 @@ class BookServiceScreen extends ConsumerWidget {
                   }
 
                   final user = FirebaseAuth.instance.currentUser;
+                  final firestore = FirebaseFirestore.instance;
+
+                  // 🔹 Step 1: Run transaction to increment and get bookId
+                  final int? newBookId = await firestore.runTransaction<int>((
+                    transaction,
+                  ) async {
+                    final counterRef = firestore
+                        .collection('meta')
+                        .doc('bookingCounter');
+
+                    final snapshot = await transaction.get(counterRef);
+                    if (!snapshot.exists) {
+                      transaction.set(counterRef, {"lastId": 0});
+                      return 1; // Start from 1 if no previous ID exists
+                    }
+
+                    final lastId = snapshot.get('lastId') as int;
+                    final updatedId = lastId + 1;
+                    transaction.update(counterRef, {"lastId": updatedId});
+                    return updatedId;
+                  });
                   await FirebaseFirestore.instance.collection('booking').add({
+                    "bookId": newBookId, // ✅ Auto-incremented ID
                     "description": state.description,
                     "address": state.address,
                     "photo": state.imageUrl,
@@ -313,6 +335,7 @@ class BookServiceScreen extends ConsumerWidget {
                     "sheduledtime":
                         state.scheduledTime?.toIso8601String() ?? '',
                     "userId": user?.uid,
+                    "createdAt": FieldValue.serverTimestamp(),
                   });
 
                   ScaffoldMessenger.of(context).showSnackBar(

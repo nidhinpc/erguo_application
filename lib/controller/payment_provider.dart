@@ -13,10 +13,11 @@ class PaymentController extends StateNotifier<List<PaymentModel>> {
 
   final _firestore = FirebaseFirestore.instance;
 
-  Future<void> fetchPaymentsForUser(String userId) async {
+  Future<void> fetchPaymentsForUser(String userId, int bookId) async {
     final snapshot = await _firestore
         .collection('payments')
         .where('userId', isEqualTo: userId)
+        .where('bookId', isEqualTo: bookId) // <-- now filtering by booking
         .get();
 
     state = snapshot.docs
@@ -29,6 +30,7 @@ class PaymentController extends StateNotifier<List<PaymentModel>> {
     required String userId,
     required int amount,
     required String description,
+    required int bookId,
   }) async {
     final doc = await _firestore.collection('payments').add({
       "workerId": workerId,
@@ -36,6 +38,7 @@ class PaymentController extends StateNotifier<List<PaymentModel>> {
       "amount": amount,
       "description": description,
       "paid": false,
+      "bookId": bookId, // Assuming bookId is same as userId for this example
       "timestamp": FieldValue.serverTimestamp(),
     });
 
@@ -47,6 +50,7 @@ class PaymentController extends StateNotifier<List<PaymentModel>> {
         "amount": amount,
         "description": description,
         "paid": false,
+        "bookId": bookId,
       }),
     ];
 
@@ -67,6 +71,7 @@ class PaymentController extends StateNotifier<List<PaymentModel>> {
           amount: p.amount,
           description: p.description,
           paid: true,
+          bookId: p.bookId,
         );
       }
       return p;

@@ -10,5 +10,6 @@ class ColorConstants {
   static const Color successColor = Colors.green;
   static const Color warningColor = Colors.orange;
   static const Color infoColor = Colors.lightBlueAccent;
-  
 }
+
+const String google_api_key = "AIzaSyBl5Tr1XFrNfFmAbVnoov0IrUaamORy8DQ";

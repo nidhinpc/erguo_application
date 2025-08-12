@@ -6,7 +6,12 @@ import 'package:lottie/lottie.dart';
 
 class WorkerSendPaymentScreen extends ConsumerStatefulWidget {
   final String userid;
-  const WorkerSendPaymentScreen({super.key, required this.userid});
+  final int bookid;
+  const WorkerSendPaymentScreen({
+    super.key,
+    required this.userid,
+    required this.bookid,
+  });
 
   @override
   ConsumerState<WorkerSendPaymentScreen> createState() =>
@@ -23,7 +28,7 @@ class _WorkerSendPaymentScreenState
   Future<void> _refreshPayments() async {
     await ref
         .read(paymentProvider.notifier)
-        .fetchPaymentsForUser(widget.userid);
+        .fetchPaymentsForUser(widget.userid, widget.bookid);
   }
 
   @override
@@ -104,10 +109,12 @@ class _WorkerSendPaymentScreenState
                 final amount = int.tryParse(amountController.text) ?? 0;
                 final workerId = FirebaseAuth.instance.currentUser!.uid;
                 final userId = widget.userid;
+                final bookId = widget.bookid;
 
                 final id = await ref
                     .read(paymentProvider.notifier)
                     .sendPaymentByWorker(
+                      bookId: bookId,
                       workerId: workerId,
                       userId: userId,
                       amount: amount,
