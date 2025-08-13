@@ -32,13 +32,26 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
+     signingConfigs {
+        create("release") {
+            storeFile = file("C:/Users/user/erguo-release-key.jks")
+            storePassword = "your-keystore-password"
+            keyAlias = "erguo_key"
+            keyPassword = "your-key-password"
+        }
+    }
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+            isShrinkResources = false 
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
+        
     }
 }
 

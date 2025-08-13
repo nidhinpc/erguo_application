@@ -28,6 +28,37 @@ class _LoginScreenState extends State<LoginScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
       // Navigate to role-based screen directly
+      _navigateToRoleBasedScreen(user);
+    }
+  }
+
+  void _navigateToRoleBasedScreen(User user) async {
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+    String? role = userDoc.data()?['role'];
+
+    if (role == 'admin') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => BottomNavScreen(initialIndex: 0)),
+      );
+    } else if (role == 'worker') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => BottomNavScreen(initialIndex: 2)),
+      );
+    } else if (role == 'user') {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => BottomNavScreen(initialIndex: 1)),
+      );
+    } else {
+      // Handle unknown role
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Unknown role: $role")));
     }
   }
 
