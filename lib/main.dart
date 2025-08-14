@@ -21,7 +21,8 @@ void main() async {
 
   await Supabase.initialize(
     url: 'https://hzyfzaxdfunskijhlnfu.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWZ6YXhkZnVuc2tpamhsbmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3NzA1MzIsImV4cCI6MjA2OTM0NjUzMn0.Ma7XCXRVDOzpHNQHg-1cUx4fQTYZ7XLF0FVrkXM6Zjg', // truncated
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6eWZ6YXhkZnVuc2tpamhsbmZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3NzA1MzIsImV4cCI6MjA2OTM0NjUzMn0.Ma7XCXRVDOzpHNQHg-1cUx4fQTYZ7XLF0FVrkXM6Zjg', // truncated
   );
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
@@ -29,8 +30,9 @@ void main() async {
   // Remove anonymous auth, not needed
   // await FirebaseAuth.instance.signInAnonymously();
 
-  final PendingDynamicLinkData? initialLink =
-      await FirebaseDynamicLinks.instance.getInitialLink();
+  final PendingDynamicLinkData? initialLink = await FirebaseDynamicLinks
+      .instance
+      .getInitialLink();
 
   runApp(ProviderScope(child: MyApp(initialLink)));
 }
@@ -51,7 +53,7 @@ class MyApp extends ConsumerWidget {
       title: 'ERGUO',
       theme: ThemeData(primarySwatch: Colors.blue),
       debugShowCheckedModeBanner: false,
-      home: startScreen, // OR PaymentScreen()
+      home: startScreen,
       routes: {
         '/bookService': (context) => const BookServiceScreen(),
         '/workerRegister': (context) => const WorkerRegister(),
