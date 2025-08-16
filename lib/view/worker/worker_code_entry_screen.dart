@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:erguo/constants/color_constants.dart';
 import 'package:erguo/view/worker/worker_live_tracking_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -91,41 +92,52 @@ class _WorkerCodeEntryScreenState extends State<WorkerCodeEntryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text("Enter Job Code")),
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          children: [
-            TextField(
-              controller: _codeController,
-              decoration: const InputDecoration(
-                labelText: "Enter Unique Code",
-                enabledBorder: OutlineInputBorder(),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.blue, width: 2.0),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2.0),
-                ),
-                focusedErrorBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: Colors.red, width: 2.0),
-                ),
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: assigned ? null : submitCode,
-              child: const Text("Submit"),
-            ),
-            if (assigned)
-              const Padding(
-                padding: EdgeInsets.only(top: 20),
-                child: Text(
-                  "You have been assigned successfully!",
-                  style: TextStyle(color: Colors.green),
+
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/worker.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            children: [
+              TextField(
+                controller: _codeController,
+                decoration: const InputDecoration(
+                  fillColor: ColorConstants.secondaryColor,
+                  filled: true,
+                  labelText: "Enter Unique Code",
+                  enabledBorder: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red, width: 2.0),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Colors.red, width: 2.0),
+                  ),
+                  border: OutlineInputBorder(),
                 ),
               ),
-          ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: assigned ? null : submitCode,
+                child: const Text("Submit"),
+              ),
+              if (assigned)
+                const Padding(
+                  padding: EdgeInsets.only(top: 20),
+                  child: Text(
+                    "You have been assigned successfully!",
+                    style: TextStyle(color: Colors.green),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );

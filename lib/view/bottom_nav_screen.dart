@@ -1,8 +1,10 @@
+import 'package:erguo/view/admin/shop_register_screen.dart';
+import 'package:erguo/view/near_by_shop_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:erguo/view/admin/admin_panel.dart';
 import 'package:erguo/view/users/home_screen.dart';
 import 'package:erguo/view/worker/worker_code_entry_screen.dart';
-import 'package:erguo/view/profile_screen.dart'; // <- Create this if not already
+import 'package:erguo/view/profile_screen.dart';
 
 class BottomNavScreen extends StatefulWidget {
   final int initialIndex; // 0 = Admin, 1 = User, 2 = Worker
@@ -19,9 +21,10 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
   @override
   void initState() {
     super.initState();
-    _selectedTabIndex = 0; // Always show main screen first
+    _selectedTabIndex = 0; // Start on dashboard tab
   }
 
+  /// Returns role-based dashboard screen
   Widget getRoleScreen() {
     switch (widget.initialIndex) {
       case 0:
@@ -31,19 +34,54 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
       case 2:
         return WorkerCodeEntryScreen();
       default:
-        return const HomeScreen(); // fallback
+        return const HomeScreen();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _screens = [
-      getRoleScreen(), // Tab 0 = Role-based screen
-      const ProfileScreen(), // Tab 1 = Profile screen
-    ];
+    // Screens based on role
+    late List<Widget> screens;
+    late List<BottomNavigationBarItem> navItems;
+
+    if (widget.initialIndex == 0) {
+      // ADMIN: Dashboard + Profile
+      screens = [getRoleScreen(), ShopRegisterScreen(), const ProfileScreen()];
+      navItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.dashboard),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.add_business),
+          label: 'Register Shop',
+        ),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ];
+    } else {
+      // USER or WORKER: Dashboard + Nearby Shops + Profile
+      screens = [
+        getRoleScreen(),
+        const NearbyElectricalShopsScreen(
+          // userLat: 10.1234, // replace with actual location
+          // userLng: 76.5678,
+          // workerLat: 10.4567,
+          // workerLng: 76.6789,
+        ),
+        const ProfileScreen(),
+      ];
+      navItems = const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.dashboard),
+          label: 'Dashboard',
+        ),
+        BottomNavigationBarItem(icon: Icon(Icons.store), label: 'Nearby Shops'),
+        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+      ];
+    }
 
     return Scaffold(
-      body: _screens[_selectedTabIndex],
+      body: screens[_selectedTabIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedTabIndex,
         onTap: (index) {
@@ -51,13 +89,7 @@ class _BottomNavScreenState extends State<BottomNavScreen> {
             _selectedTabIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
+        items: navItems,
       ),
     );
   }

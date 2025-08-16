@@ -161,242 +161,280 @@ class _UserRegistrationScreenState
     final provider = ref.read(registrationProvider.notifier);
 
     return Scaffold(
-      backgroundColor: ColorConstants.successColor,
-      body: Center(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Text(
-                  "Register as User",
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: ColorConstants.secondaryColor,
-                    fontStyle: FontStyle.italic,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/register.jpg'),
+            fit: BoxFit.fitHeight,
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  Text(
+                    "Register as User",
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: ColorConstants.primaryColor,
+                      fontStyle: FontStyle.italic,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 32),
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: ColorConstants.secondaryColor,
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      color: ColorConstants.secondaryColor,
+                      borderRadius: BorderRadius.circular(16),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color.fromARGB(255, 9, 31, 71).withOpacity(0.1),
+                          const Color.fromARGB(255, 79, 7, 2).withOpacity(0.5),
+                        ],
                       ),
-                    ],
-                  ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
 
-                  child: Form(
-                    key: _formKey,
-                    child: ListView(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        TextFormField(
-                          controller: _fullnameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Full Name',
-                            border: OutlineInputBorder(),
-                            disabledBorder: OutlineInputBorder(),
-                            focusedBorder: OutlineInputBorder(),
-                            enabledBorder: OutlineInputBorder(),
-                          ),
-                          validator: (value) =>
-                              value!.isEmpty ? 'Enter full name' : null,
-                        ),
-                        SizedBox(height: 12),
-                        TextFormField(
-                          controller: _emailController,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            border: OutlineInputBorder(),
-                            disabledBorder: OutlineInputBorder(),
-                            focusedBorder: OutlineInputBorder(),
-                            enabledBorder: OutlineInputBorder(),
-                          ),
-                          validator: (value) =>
-                              value!.isEmpty ? 'Enter email' : null,
-                        ),
-                        SizedBox(height: 12),
-
-                        DropdownButtonFormField<String>(
-                          value: _genderController.text.isEmpty
-                              ? null
-                              : _genderController.text,
-                          items: ['male', 'female']
-                              .map(
-                                (gender) => DropdownMenuItem(
-                                  value: gender,
-                                  child: Text(gender),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            _genderController.text = value!;
-                          },
-                          decoration: const InputDecoration(
-                            labelText: 'Gender',
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) => value == null || value.isEmpty
-                              ? 'Select gender'
-                              : null,
-                        ),
-
-                        SizedBox(height: 12),
-                        TextFormField(
-                          controller: _phoneController,
-                          decoration: const InputDecoration(
-                            labelText: 'Phone',
-                            border: OutlineInputBorder(),
-                            disabledBorder: OutlineInputBorder(),
-                            focusedBorder: OutlineInputBorder(),
-                            enabledBorder: OutlineInputBorder(),
-                          ),
-                          keyboardType: TextInputType.phone,
-                          validator: (value) =>
-                              value!.isEmpty ? 'Enter phone number' : null,
-                        ),
-                        SizedBox(height: 12),
-                        TextFormField(
-                          controller: _passwordController,
-                          decoration: const InputDecoration(
-                            labelText: 'Password',
-                            border: OutlineInputBorder(),
-                            disabledBorder: OutlineInputBorder(),
-                            focusedBorder: OutlineInputBorder(),
-                            enabledBorder: OutlineInputBorder(),
-                          ),
-                          obscureText: true,
-                          validator: (value) =>
-                              value!.length < 6 ? 'Minimum 6 characters' : null,
-                        ),
-                        const SizedBox(height: 12),
-
-                        DropdownButtonFormField<String>(
-                          dropdownColor: ColorConstants.secondaryColor,
-                          value: userType,
-                          decoration: InputDecoration(
-                            labelText: 'Select Role',
-                            border: OutlineInputBorder(),
-                            disabledBorder: OutlineInputBorder(),
-                            focusedBorder: OutlineInputBorder(),
-                            enabledBorder: OutlineInputBorder(),
-                          ),
-                          items: ['user', 'worker']
-                              .map(
-                                (role) => DropdownMenuItem(
-                                  value: role,
-                                  child: Text(role),
-                                ),
-                              )
-                              .toList(),
-                          onChanged: (v) => setState(() => userType = v!),
-                        ),
-
-                        // Additional fields for Worker
-                        if (userType == 'worker') ...[
-                          SizedBox(height: 12),
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
                           TextFormField(
-                            controller: experienceController,
-                            decoration: InputDecoration(
-                              labelText: 'Experience',
+                            controller: _fullnameController,
+                            decoration: const InputDecoration(
+                              fillColor: ColorConstants.secondaryColor,
+                              filled: true,
+                              labelText: 'Full Name',
                               border: OutlineInputBorder(),
                               disabledBorder: OutlineInputBorder(),
                               focusedBorder: OutlineInputBorder(),
                               enabledBorder: OutlineInputBorder(),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter your experience';
-                              }
-                              return null;
-                            },
+                            validator: (value) =>
+                                value!.isEmpty ? 'Enter full name' : null,
                           ),
                           SizedBox(height: 12),
                           TextFormField(
-                            controller: locationController,
-                            readOnly: true,
-                            onTap: getCurrentLocation,
-                            decoration: InputDecoration(
-                              labelText: 'Tap to fetch Location',
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              fillColor: ColorConstants.secondaryColor,
+                              filled: true,
+                              labelText: 'Email',
+                              border: OutlineInputBorder(),
+                              disabledBorder: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(),
+                            ),
+                            validator: (value) =>
+                                value!.isEmpty ? 'Enter email' : null,
+                          ),
+                          SizedBox(height: 12),
+
+                          DropdownButtonFormField<String>(
+                            value: _genderController.text.isEmpty
+                                ? null
+                                : _genderController.text,
+                            items: ['male', 'female']
+                                .map(
+                                  (gender) => DropdownMenuItem(
+                                    value: gender,
+                                    child: Text(gender),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (value) {
+                              _genderController.text = value!;
+                            },
+                            decoration: const InputDecoration(
+                              fillColor: ColorConstants.secondaryColor,
+                              filled: true,
+                              labelText: 'Gender',
                               border: OutlineInputBorder(),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please fetch your location';
-                              }
-                              return null;
-                            },
+                            validator: (value) => value == null || value.isEmpty
+                                ? 'Select gender'
+                                : null,
                           ),
 
-                          // Photo upload field (this can be more complex with file pickers)
                           SizedBox(height: 12),
-                          Column(
-                            children: [
-                              InkWell(
-                                onTap: provider.pickAndUploadImage,
-                                child: CircleAvatar(
-                                  radius: 50,
-                                  backgroundColor: ColorConstants.primaryColor,
-                                  backgroundImage: state.imageFile != null
-                                      ? FileImage(state.imageFile!)
-                                      : null,
-                                  child: state.imageFile == null
-                                      ? Icon(
-                                          Icons.camera_alt,
-                                          size: 50,
-                                          color: ColorConstants.secondaryColor,
-                                        )
-                                      : null,
-                                ),
+                          TextFormField(
+                            controller: _phoneController,
+                            decoration: const InputDecoration(
+                              fillColor: ColorConstants.secondaryColor,
+                              filled: true,
+                              labelText: 'Phone',
+                              border: OutlineInputBorder(),
+                              disabledBorder: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(),
+                            ),
+                            keyboardType: TextInputType.phone,
+                            validator: (value) =>
+                                value!.isEmpty ? 'Enter phone number' : null,
+                          ),
+                          SizedBox(height: 12),
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: const InputDecoration(
+                              fillColor: ColorConstants.secondaryColor,
+                              filled: true,
+                              labelText: 'Password',
+                              border: OutlineInputBorder(),
+                              disabledBorder: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(),
+                            ),
+                            obscureText: true,
+                            validator: (value) => value!.length < 6
+                                ? 'Minimum 6 characters'
+                                : null,
+                          ),
+                          const SizedBox(height: 12),
+
+                          DropdownButtonFormField<String>(
+                            dropdownColor: ColorConstants.secondaryColor,
+                            value: userType,
+                            decoration: InputDecoration(
+                              fillColor: ColorConstants.secondaryColor,
+                              filled: true,
+                              labelText: 'Select Role',
+                              border: OutlineInputBorder(),
+                              disabledBorder: OutlineInputBorder(),
+                              focusedBorder: OutlineInputBorder(),
+                              enabledBorder: OutlineInputBorder(),
+                            ),
+                            items: ['user', 'worker']
+                                .map(
+                                  (role) => DropdownMenuItem(
+                                    value: role,
+                                    child: Text(role),
+                                  ),
+                                )
+                                .toList(),
+                            onChanged: (v) => setState(() => userType = v!),
+                          ),
+
+                          // Additional fields for Worker
+                          if (userType == 'worker') ...[
+                            SizedBox(height: 12),
+                            TextFormField(
+                              controller: experienceController,
+                              decoration: InputDecoration(
+                                fillColor: ColorConstants.secondaryColor,
+                                filled: true,
+                                labelText: 'Experience',
+                                border: OutlineInputBorder(),
+                                disabledBorder: OutlineInputBorder(),
+                                focusedBorder: OutlineInputBorder(),
+                                enabledBorder: OutlineInputBorder(),
                               ),
-                              const SizedBox(height: 8),
-                              Text("Tap to select a photo"),
-                            ],
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please enter your experience';
+                                }
+                                return null;
+                              },
+                            ),
+                            SizedBox(height: 12),
+                            TextFormField(
+                              controller: locationController,
+                              readOnly: true,
+                              onTap: getCurrentLocation,
+                              decoration: InputDecoration(
+                                fillColor: ColorConstants.secondaryColor,
+                                filled: true,
+                                labelText: 'Tap to fetch Location',
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Please fetch your location';
+                                }
+                                return null;
+                              },
+                            ),
+
+                            // Photo upload field (this can be more complex with file pickers)
+                            SizedBox(height: 12),
+                            Column(
+                              children: [
+                                InkWell(
+                                  onTap: provider.pickAndUploadImage,
+                                  child: CircleAvatar(
+                                    radius: 50,
+                                    backgroundColor:
+                                        ColorConstants.primaryColor,
+                                    backgroundImage: state.imageFile != null
+                                        ? FileImage(state.imageFile!)
+                                        : null,
+                                    child: state.imageFile == null
+                                        ? Icon(
+                                            Icons.camera_alt,
+                                            size: 50,
+                                            color:
+                                                ColorConstants.secondaryColor,
+                                          )
+                                        : null,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text("Tap to select a photo"),
+                              ],
+                            ),
+                          ],
+
+                          SizedBox(height: 24),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: ColorConstants.primaryColor,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            onPressed: state.isLoading ? null : registerUser,
+                            child: const Text(
+                              "Register",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: ColorConstants.secondaryColor,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.pushNamed(context, '/login');
+                            },
+                            child: const Text(
+                              "Already have an account? Login",
+                              style: TextStyle(
+                                color: ColorConstants.accentColor,
+                              ),
+                            ),
                           ),
                         ],
-
-                        SizedBox(height: 24),
-                        ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ColorConstants.primaryColor,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: state.isLoading ? null : registerUser,
-                          child: const Text(
-                            "Register",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: ColorConstants.secondaryColor,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/login');
-                          },
-                          child: const Text(
-                            "Already have an account? Login",
-                            style: TextStyle(color: ColorConstants.accentColor),
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

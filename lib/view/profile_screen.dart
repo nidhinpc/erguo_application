@@ -39,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         .get();
     if (userDoc.exists) {
       setState(() {
-        name = userDoc.data()?['fullName'] ?? 'User';
+        name = userDoc.data()?["fullname"] ?? 'User';
         role = userDoc.data()?['role'] ?? 'user';
         isLoading = false;
       });

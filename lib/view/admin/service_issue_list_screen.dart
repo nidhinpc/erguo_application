@@ -1,151 +1,150 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+// lib/view/admin/service_issue_list_screen.dart
+
+import 'package:erguo/controller/service_issue_provider.dart';
 import 'package:erguo/view/admin/near_by_workers_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
-class ServiceIssueListScreen extends StatefulWidget {
+class ServiceIssueListScreen extends ConsumerWidget {
   final String serviceName;
 
   const ServiceIssueListScreen({super.key, required this.serviceName});
 
-  @override
-  State<ServiceIssueListScreen> createState() => _ServiceIssueListScreenState();
-}
+  void handleDecision(
+    BuildContext context,
+    WidgetRef ref,
+    Map<String, dynamic> issue,
+    String action,
+  ) async {
+    final issueId = issue['id'];
 
-class _ServiceIssueListScreenState extends State<ServiceIssueListScreen> {
-  List<Map<String, dynamic>> issues = [];
-  bool isLoading = true;
-
-  @override
-  void initState() {
-    super.initState();
-    fetchServiceIssues();
-  }
-
-  Future<void> fetchServiceIssues() async {
     try {
-      final snapshot = await FirebaseFirestore.instance
+      await FirebaseFirestore.instance
           .collection('booking')
-          .where('servicename', isEqualTo: widget.serviceName)
-          .get();
+          .doc(issueId)
+          .update({'status': action});
 
-      final fetchedIssues = snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        data['status'] = data['status'] ?? 'pending'; // default
-        return data;
-      }).toList();
+      if (action == 'accepted') {
+        final uniqueCode =
+            'ISSUE-${issue['userId']}&${DateTime.now().millisecondsSinceEpoch}';
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) =>
+                NearbyWorkersScreen(issue: issue, uniqueCode: uniqueCode),
+          ),
+        );
+      }
 
-      setState(() {
-        issues = fetchedIssues;
-        isLoading = false;
-      });
-    } catch (e) {
-      print("Error fetching issues: $e");
-      setState(() => isLoading = false);
-    }
-  }
-
-  void handleDecision(int index, String action) {
-    setState(() {
-      issues[index]['status'] = action;
-    });
-
-    if (action == 'accepted') {
-      final uniqueCode =
-          'ISSUE-${issues[index]['userId']}&${DateTime.now().millisecondsSinceEpoch}';
-      Navigator.push(
+      ScaffoldMessenger.of(
         context,
-        MaterialPageRoute(
-          builder: (_) =>
-              NearbyWorkersScreen(issue: issues[index], uniqueCode: uniqueCode),
-        ),
-      );
-    }
+      ).showSnackBar(SnackBar(content: Text('Issue marked as $action')));
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Issue ${index + 1} marked as $action')),
-    );
+      // Refresh provider after update
+      ref.refresh(issuesProvider(serviceName));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update: $e')));
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final issuesAsync = ref.watch(issuesProvider(serviceName));
+
     return Scaffold(
-      appBar: AppBar(title: Text('${widget.serviceName} Issues')),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : issues.isEmpty
-          ? const Center(child: Text("No bookings found."))
-          : ListView.builder(
-              itemCount: issues.length,
-              itemBuilder: (context, index) {
-                final issue = issues[index];
-                return Card(
-                  margin: const EdgeInsets.all(12),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (issue['photo'] != null)
-                          Image.network(
-                            issue['photo'],
-                            height: 150,
-                            fit: BoxFit.cover,
+      appBar: AppBar(title: Text('$serviceName Issues')),
+      body: issuesAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(child: Text("Error: $e")),
+        data: (issues) {
+          if (issues.isEmpty) {
+            return const Center(child: Text("No bookings found."));
+          }
+          return ListView.builder(
+            itemCount: issues.length,
+            itemBuilder: (context, index) {
+              final issue = issues[index];
+              return Card(
+                margin: const EdgeInsets.all(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (issue['photo'] != null)
+                        Image.network(
+                          issue['photo'],
+                          height: 150,
+                          fit: BoxFit.cover,
+                        ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Description: ${issue['description'] ?? ''}",
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text("Location: ${issue['location'] ?? ''}"),
+                      Text("Address: ${issue['address'] ?? ''}"),
+                      Text("Scheduled: ${issue['sheduledtime'] ?? ''}"),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.green,
+                            ),
+                            onPressed: issue['status'] == 'pending'
+                                ? () => handleDecision(
+                                    context,
+                                    ref,
+                                    issue,
+                                    'accepted',
+                                  )
+                                : null,
+                            icon: const Icon(Icons.check),
+                            label: const Text("Accept"),
                           ),
-                        const SizedBox(height: 8),
-                        Text(
-                          "Description: ${issue['description'] ?? ''}",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const SizedBox(height: 4),
-                        Text("Location: ${issue['location'] ?? ''}"),
-                        Text("Address: ${issue['address'] ?? ''}"),
-                        Text("Scheduled: ${issue['sheduledtime'] ?? ''}"),
-                        const SizedBox(height: 8),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                              ),
-                              onPressed: issue['status'] == 'pending'
-                                  ? () => handleDecision(index, 'accepted')
-                                  : null,
-                              icon: const Icon(Icons.check),
-                              label: const Text("Accept"),
+                          const SizedBox(width: 10),
+                          ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red,
                             ),
-                            const SizedBox(width: 10),
-                            ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
-                              ),
-                              onPressed: issue['status'] == 'pending'
-                                  ? () => handleDecision(index, 'rejected')
-                                  : null,
-                              icon: const Icon(Icons.close),
-                              label: const Text("Reject"),
-                            ),
-                          ],
-                        ),
-                        if (issue['status'] != 'pending') ...[
-                          const SizedBox(height: 6),
-                          Text(
-                            "Status: ${issue['status']}",
-                            style: TextStyle(
-                              color: issue['status'] == 'accepted'
-                                  ? Colors.green
-                                  : Colors.red,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            onPressed: issue['status'] == 'pending'
+                                ? () => handleDecision(
+                                    context,
+                                    ref,
+                                    issue,
+                                    'rejected',
+                                  )
+                                : null,
+                            icon: const Icon(Icons.close),
+                            label: const Text("Reject"),
                           ),
                         ],
+                      ),
+                      if (issue['status'] != 'pending') ...[
+                        const SizedBox(height: 6),
+                        Text(
+                          "Status: ${issue['status']}",
+                          style: TextStyle(
+                            color: issue['status'] == 'accepted'
+                                ? Colors.green
+                                : Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ],
-                    ),
+                    ],
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

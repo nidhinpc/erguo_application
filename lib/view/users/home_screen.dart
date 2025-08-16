@@ -26,6 +26,12 @@ class HomeScreen extends ConsumerWidget {
     BuildContext context,
     List<Map<String, dynamic>> bookings,
   ) {
+    if (bookings.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("No bookings found")));
+      return;
+    }
     showModalBottomSheet(
       context: context,
       builder: (context) {
@@ -40,14 +46,17 @@ class HomeScreen extends ConsumerWidget {
 
             return paymentsAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) =>
-                  Center(child: Text('Error loading payments: $e')),
+              error: (e, _) {
+                log("❌ Payment fetch error: $e");
+                return Center(child: Text('Error loading payments: $e'));
+              },
               data: (payments) {
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: bookings.length,
                   itemBuilder: (context, index) {
                     final booking = bookings[index];
+                    if (booking.isEmpty) return const SizedBox.shrink();
 
                     // Find matching payment
                     final pendingPayment = payments.firstWhereOrNull(
@@ -97,6 +106,13 @@ class HomeScreen extends ConsumerWidget {
                                 width: 50,
                                 height: 50,
                                 fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.broken_image,
+                                    size: 50,
+                                    color: Colors.red,
+                                  );
+                                },
                               )
                             : const Icon(Icons.image_not_supported, size: 50),
                         title: Text(booking['servicename'] ?? 'Unknown'),
